@@ -114,7 +114,7 @@ with tab3:
         st.image(
             "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Exponential_growth_and_decay_1.svg/640px-Exponential_growth_and_decay_1.svg.png",
             caption="รูปที่ 1: เปรียบเทียบลักษณะฟังก์ชัน Exponential เพิ่ม (Growth) และ ฟังก์ชัน Exponential ลด (Decay)",
-            use_column_width=True
+            use_container_width=True
         )
     else:
         # แสดงรูปภาพทฤษฎีสมการเส้นตรงและความชัน
