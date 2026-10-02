@@ -112,14 +112,14 @@ with tab3:
     if mode == "Exponential Function":
         # แสดงรูปภาพทฤษฎีฟังก์ชัน Exponential (Growth vs Decay)
         st.image(
-            "exponential_graph.png",  # สมมติว่ามีไฟล์รูปภาพในโฟลเดอร์เดียวกัน
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Exponential_growth_and_decay_1.svg/640px-Exponential_growth_and_decay_1.svg.png",
             caption="รูปที่ 1: เปรียบเทียบลักษณะฟังก์ชัน Exponential เพิ่ม (Growth) และ ฟังก์ชัน Exponential ลด (Decay)",
             use_container_width=True
         )
     else:
         # แสดงรูปภาพทฤษฎีสมการเส้นตรงและความชัน
         st.image(
-            "linear_graph.png",  # สมมติว่ามีไฟล์รูปภาพในโฟลเดอร์เดียวกัน
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Linear_Function_graph.svg/640px-Linear_Function_graph.svg.png",
             caption="รูปที่ 2: ลักษณะของสมการเส้นตรงและความชัน (Slope: m) ในรูปแบบต่างๆ",
             use_column_width=True
         )
