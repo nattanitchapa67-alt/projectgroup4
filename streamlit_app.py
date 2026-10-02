@@ -1,4 +1,3 @@
-```python
 # ============================================================
 # Project 4: Math Function Explorer
 # แอปช่วยเรียนรู้ฟังก์ชัน Exponential และ Linear
