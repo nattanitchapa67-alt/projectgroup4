@@ -218,31 +218,41 @@ st.markdown(
 # 4. Header
 # ============================================================
 
-st.markdown(
-    """
-    <div class="header">
 
-        <div>
-            <div class="header-title">
-                📐 Math Function Explorer
-            </div>
+.header {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 26px;
+    margin-bottom: 18px;
 
-            <div class="header-subtitle">
-                Exponential & Linear Functions ·
-                เรียนรู้ฟังก์ชันด้วยเครื่องมือ Interactive
-                พร้อมการคำนวณแบบ Step-by-Step
-            </div>
-        </div>
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-        <div class="project-badge">
-            Project 2569 &nbsp;|&nbsp; กลุ่ม 4
-        </div>
+    border: 1px solid #D5E0F7;
+    box-shadow: 0 4px 15px rgba(27,42,107,0.06);
+}
 
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+.header-title {
+    color: #1B2A6B;
+    font-family: Georgia, serif;
+    font-size: 30px;
+    font-weight: 700;
+}
 
+.header-subtitle {
+    color: #52638F;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.project-badge {
+    color: #1B2A6B;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 3px solid #2563EB;
+    padding-bottom: 5px;
+}
 
 # ============================================================
 # 5. ฟังก์ชันช่วย
