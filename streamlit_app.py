@@ -1,1440 +1,178 @@
-# ============================================================
-# Project 4: Math Function Explorer
-# แอปช่วยเรียนรู้ฟังก์ชัน Exponential และ Linear
-# กลุ่ม 4 | Project 2569
-# ============================================================
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import streamlit as st
+# ============================================================
+# 1) !ง#าห&าเพจ
+# ============================================================
+st.set_page_config(page_title="Math Learning", page_icon=" ", layout="wide")
+# *พาสเทลตามแบบ (ชม3 / 4ช / 5วงลาเวนเดอ: / ;น<)
+PINK, PEACH, LAV, MINT = "#F2C4C8", "#F9DDB8", "#CFC8F5", "#B9EBD3"
+DARK, PURPLE = "#2B2B33", "#7C6FE0"
+# CSS ตกแ>ง: ?นห@ง;น<, กา:ดAมมน
+st.markdown(f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+html, body, [class*="css"] {{ font-family: 'Sarabun', sans-serif !important; }}
+.stApp {{ background: #DDF5EA; color: {DARK}; }}
+[data-testid="stSidebar"] {{ background: #FBF8F4; border-radius: 0 28px 28px 0; }}
+.big-title {{ font-size: 3rem; font-weight: 700; line-height: 1.15; margin: 10px 0 18px 0; }}
+.card {{ padding: 16px 20px; border-radius: 20px; margin-bottom: 12px; }}
+.card small {{ color: #555; }}
+.card h3 {{ margin: 4px 0 0 0; font-size: 1.6rem; }}
+[data-testid="stVerticalBlockBorderWrapper"] {{ background: #FBF8F4; border-radius: 24px; }}
+.stTabs [aria-selected="true"] {{ background: {DARK}; color: white; border-radius: 20px; }}
+.stTabs [data-baseweb="tab"] {{ border-radius: 20px; padding: 6px 18px; }}
+</style>
+""", unsafe_allow_html=True)
 
+def card(color, title, value):
+"""สBางกา:ด*พาสเทล"""
+st.markdown(f'<div class="card" style="background:{color}"><small>{title}</small>'
+f'<h3>{value}</h3></div>', unsafe_allow_html=True)
+
+def g(v):
+"""แปลงDวเลขเFนGอความIนๆ เKน 2.0 -> 2"""
+return f"{v:g}"
 
 # ============================================================
-# 1. ตั้งค่าหน้าเว็บ
+
+# 2) Sidebar: Lบ#าจากMใO (widgets)
 # ============================================================
-
-st.set_page_config(
-    page_title="Math Function Explorer",
-    page_icon="📐",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-
+st.sidebar.title(" เมP")
+mode = st.sidebar.selectbox("เQอกRงSTน", ["Exponential", "เUนตรง"])
+if mode == "Exponential":
+st.sidebar.latex(r"y=b\left(a^{c(x+h)}\right)+k")
+a = st.sidebar.number_input("a (ฐาน, a > 0, a ≠ 1)", 0.1, 20.0, 2.0, 0.1)
+b = st.sidebar.slider("b", -5.0, 5.0, 1.0, 0.1)
+c = st.sidebar.slider("c", -3.0, 3.0, 1.0, 0.1)
+h = st.sidebar.slider("h", -5.0, 5.0, 0.0, 0.5)
+k = st.sidebar.slider("k", -10.0, 10.0, 0.0, 0.5)
+else:
+st.sidebar.latex(r"y=mx+c")
+m = st.sidebar.slider("m (ความTน)", -10.0, 10.0, 1.0, 0.1)
+c = st.sidebar.number_input("c (XดDดแกน y)", -50.0, 50.0, 0.0, 0.5)
+xmin, xmax = st.sidebar.slider("Kวงของ x Yแสดงบนกราฟ", -15.0, 15.0, (-5.0, 5.0), 0.5)
+x0 = st.sidebar.number_input("x Y[องการ\นวณ", value=1.0, step=0.5)
 # ============================================================
-# 2. สีหลัก
+# 3) ^หนดRงSTน f(x) และGอ`ลสaป
 # ============================================================
-
-NAVY = "#1B2A6B"
-BLUE = "#2563EB"
-LIGHT_BLUE = "#EAF0FC"
-BORDER = "#D5E0F7"
-ORANGE = "#F59E0B"
-GREEN = "#10B981"
-RED = "#EF4444"
-
-
-# ============================================================
-# 3. CSS ตกแต่งเว็บไซต์
-# ============================================================
-
-st.markdown(
-    f"""
-    <style>
-
-    /* ---------- Global ---------- */
-
-    @import url(
-        'https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap'
-    );
-
-    html, body, [class*="css"] {{
-        font-family: 'Prompt', sans-serif;
-    }}
-
-    .stApp {{
-        background: linear-gradient(
-            180deg,
-            #F4F7FD 0%,
-            #E6EDFA 100%
-        );
-    }}
-
-
-    /* ---------- Sidebar ---------- */
-
-    section[data-testid="stSidebar"] {{
-        background: linear-gradient(
-            180deg,
-            #2A4378 0%,
-            #1E3160 100%
-        );
-    }}
-
-    section[data-testid="stSidebar"] * {{
-        color: white;
-    }}
-
-    section[data-testid="stSidebar"] .stSlider label {{
-        color: white !important;
-    }}
-
-    section[data-testid="stSidebar"] .stNumberInput label {{
-        color: white !important;
-    }}
-
-    section[data-testid="stSidebar"] .stSelectbox label {{
-        color: white !important;
-    }}
-
-
-    /* ---------- Header ---------- */
-
-    .header {{
-        background: white;
-        border-radius: 16px;
-        padding: 20px 26px;
-        margin-bottom: 18px;
-
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        border: 1px solid {BORDER};
-        box-shadow: 0 4px 15px rgba(27, 42, 107, 0.06);
-    }}
-
-    .header-title {{
-        color: {NAVY};
-        font-family: Georgia, serif;
-        font-size: 30px;
-        font-weight: 700;
-        margin-bottom: 3px;
-    }}
-
-    .header-subtitle {{
-        color: #52638F;
-        font-size: 14px;
-    }}
-
-    .project-badge {{
-        color: {NAVY};
-        font-size: 14px;
-        font-weight: 600;
-        border-bottom: 3px solid {BLUE};
-        padding-bottom: 5px;
-    }}
-
-
-    /* ---------- Section title ---------- */
-
-    .section-title {{
-        color: {NAVY};
-        font-size: 19px;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }}
-
-
-    /* ---------- Cards ---------- */
-
-    .info-card {{
-        background: #FFFFFF;
-        border: 1px solid {BORDER};
-        border-radius: 14px;
-        padding: 18px;
-        margin-bottom: 12px;
-        box-shadow: 0 3px 12px rgba(27, 42, 107, 0.04);
-    }}
-
-    .blue-card {{
-        background: {LIGHT_BLUE};
-        border: 1px solid {BORDER};
-        border-radius: 12px;
-        padding: 16px;
-    }}
-
-    .success-card {{
-        background: #ECFDF5;
-        border: 1px solid #A7F3D0;
-        border-radius: 12px;
-        padding: 15px;
-    }}
-
-    .formula-card {{
-        background: #F8FAFF;
-        border: 1px solid {BORDER};
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-    }}
-
-
-    /* ---------- Tabs ---------- */
-
-    .stTabs [data-baseweb="tab-list"] {{
-        gap: 8px;
-    }}
-
-    .stTabs [data-baseweb="tab"] {{
-        background: #EEF3FC;
-        border-radius: 10px 10px 0 0;
-        padding: 12px 24px;
-        color: {NAVY};
-        font-weight: 600;
-    }}
-
-    .stTabs [aria-selected="true"] {{
-        background: {BLUE} !important;
-        color: white !important;
-    }}
-
-
-    /* ---------- Metric ---------- */
-
-    div[data-testid="stMetric"] {{
-        background: white;
-        border: 1px solid {BORDER};
-        border-radius: 12px;
-        padding: 10px;
-    }}
-
-
-    /* ---------- Divider ---------- */
-
-    hr {{
-        border-color: {BORDER};
-    }}
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# 4. Header
-# ============================================================
-
-
-.header {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 26px;
-    margin-bottom: 18px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    border: 1px solid #D5E0F7;
-    box-shadow: 0 4px 15px rgba(27,42,107,0.06);
-}
-
-.header-title {
-    color: #1B2A6B;
-    font-family: Georgia, serif;
-    font-size: 30px;
-    font-weight: 700;
-}
-
-.header-subtitle {
-    color: #52638F;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.project-badge {
-    color: #1B2A6B;
-    font-size: 14px;
-    font-weight: 600;
-    border-bottom: 3px solid #2563EB;
-    padding-bottom: 5px;
-}
-
-# ============================================================
-# 5. ฟังก์ชันช่วย
-# ============================================================
-
-def section_title(text):
-    st.markdown(
-        f'<div class="section-title">{text}</div>',
-        unsafe_allow_html=True
-    )
-
-
-def create_table(function, step):
-    """
-    สร้างตารางค่า x และ y
-    """
-
-    x_values = np.arange(
-        -5,
-        5 + 0.0001,
-        step
-    )
-
-    y_values = function(x_values)
-
-    return pd.DataFrame(
-        {
-            "x": np.round(x_values, 3),
-            "y": np.round(y_values, 3)
-        }
-    )
-
-
-def create_function_graph(function, label, asymptote=None):
-    """
-    สร้างกราฟ Interactive
-    """
-
-    x = np.linspace(-5, 5, 500)
-    y = function(x)
-
-    fig = go.Figure()
-
-    # เส้นกราฟ
-    fig.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode="lines",
-            name=label,
-            line=dict(
-                color=BLUE,
-                width=4
-            )
-        )
-    )
-
-    # จุดตัวอย่าง
-    xi = np.arange(-5, 6, 1)
-
-    fig.add_trace(
-        go.Scatter(
-            x=xi,
-            y=function(xi),
-            mode="markers",
-            name="จุดตัวอย่าง",
-            marker=dict(
-                color=BLUE,
-                size=7
-            )
-        )
-    )
-
-    # เส้นกำกับแนวนอน
-    if asymptote is not None:
-
-        fig.add_hline(
-            y=asymptote,
-            line_dash="dash",
-            line_color=ORANGE,
-            annotation_text=f"y = {asymptote:g}"
-        )
-
-    fig.update_layout(
-        template="plotly_white",
-        height=390,
-        margin=dict(
-            l=20,
-            r=20,
-            t=25,
-            b=20
-        ),
-        xaxis_title="x",
-        yaxis_title="y",
-        hovermode="x unified",
-        legend=dict(
-            x=0.02,
-            y=0.98
-        )
-    )
-
-    return fig
-
-
-# ============================================================
-# 6. รูปประกอบ Exponential Growth / Decay
-# ============================================================
-
-def exponential_illustration():
-
-    x = np.linspace(-3, 3, 200)
-
-    growth = 2 ** x
-    decay = 2 ** (-x)
-
-    fig = make_subplots(
-        rows=1,
-        cols=2,
-        subplot_titles=(
-            "Exponential Growth",
-            "Exponential Decay"
-        )
-    )
-
-    # Growth
-    fig.add_trace(
-        go.Scatter(
-            x=x,
-            y=growth,
-            mode="lines",
-            line=dict(
-                color=BLUE,
-                width=3
-            ),
-            showlegend=False
-        ),
-        row=1,
-        col=1
-    )
-
-    # Decay
-    fig.add_trace(
-        go.Scatter(
-            x=x,
-            y=decay,
-            mode="lines",
-            line=dict(
-                color=GREEN,
-                width=3
-            ),
-            showlegend=False
-        ),
-        row=1,
-        col=2
-    )
-
-    fig.add_hline(
-        y=0,
-        line_dash="dash",
-        line_color=ORANGE,
-        row=1,
-        col=1
-    )
-
-    fig.add_hline(
-        y=0,
-        line_dash="dash",
-        line_color=ORANGE,
-        row=1,
-        col=2
-    )
-
-    fig.update_layout(
-        template="plotly_white",
-        height=300,
-        margin=dict(
-            l=10,
-            r=10,
-            t=50,
-            b=10
-        )
-    )
-
-    fig.update_xaxes(title_text="x")
-    fig.update_yaxes(title_text="y")
-
-    return fig
-
-
-# ============================================================
-# 7. รูปประกอบ Linear Function
-# ============================================================
-
-def linear_illustration():
-
-    x = np.linspace(-5, 5, 100)
-
-    fig = go.Figure()
-
-    # m > 0
-    fig.add_trace(
-        go.Scatter(
-            x=x,
-            y=1.5 * x,
-            mode="lines",
-            name="m > 0",
-            line=dict(
-                color=BLUE,
-                width=3
-            )
-        )
-    )
-
-    # m < 0
-    fig.add_trace(
-        go.Scatter(
-            x=x,
-            y=-1.5 * x,
-            mode="lines",
-            name="m < 0",
-            line=dict(
-                color=RED,
-                width=3
-            )
-        )
-    )
-
-    fig.update_layout(
-        template="plotly_white",
-        height=300,
-        margin=dict(
-            l=10,
-            r=10,
-            t=20,
-            b=10
-        ),
-        xaxis_title="x",
-        yaxis_title="y"
-    )
-
-    return fig
-
-
-# ============================================================
-# 8. Sidebar
-# ============================================================
-
-sb = st.sidebar
-
-st.sidebar.markdown(
-    """
-    <h2 style="color:white;">
-        📚 Math Explorer
-    </h2>
-    """,
-    unsafe_allow_html=True
-)
-
-st.sidebar.markdown("---")
-
-st.sidebar.markdown(
-    "### 🧭 เมนู"
-)
-
-menu = st.sidebar.radio(
-    "เลือกหัวข้อ",
-    [
-        "🏠 Home",
-        "📐 ทฤษฎีและสูตร",
-        "🧪 ตัวจำลอง (Interactive)",
-        "📈 กราฟ",
-        "🧮 Step-by-Step Calculation",
-        "📝 สรุปผล"
-    ],
-    label_visibility="collapsed"
-)
-
-st.sidebar.markdown("---")
-
-
-# ============================================================
-# 9. Exponential Parameters
-# ============================================================
-
-st.sidebar.markdown(
-    "### 📈 ปรับค่าพารามิเตอร์ Exponential"
-)
-
-a = st.sidebar.slider(
-    "a (ฐานของเอ็กซ์โพเนนเชียล)",
-    min_value=0.1,
-    max_value=5.0,
-    value=2.0,
-    step=0.1
-)
-
-b = st.sidebar.slider(
-    "b (ตัวคูณ)",
-    min_value=-10.0,
-    max_value=10.0,
-    value=1.5,
-    step=0.5
-)
-
-c = st.sidebar.slider(
-    "c (อัตราการเปลี่ยนแปลง)",
-    min_value=-2.0,
-    max_value=2.0,
-    value=0.7,
-    step=0.1
-)
-
-h = st.sidebar.slider(
-    "h (การเลื่อนแนวนอน)",
-    min_value=-5.0,
-    max_value=5.0,
-    value=1.0,
-    step=0.5
-)
-
-k = st.sidebar.slider(
-    "k (การเลื่อนแนวตั้ง)",
-    min_value=-10.0,
-    max_value=10.0,
-    value=0.0,
-    step=0.5
-)
-
-
-# ============================================================
-# 10. Linear Parameters
-# ============================================================
-
-st.sidebar.markdown(
-    "### 📉 ปรับค่าพารามิเตอร์ Linear"
-)
-
-m = st.sidebar.slider(
-    "m (ความชัน)",
-    min_value=-10.0,
-    max_value=10.0,
-    value=2.0,
-    step=0.5
-)
-
-ci = st.sidebar.slider(
-    "c (จุดตัดแกน y)",
-    min_value=-10.0,
-    max_value=10.0,
-    value=1.0,
-    step=0.5
-)
-
-
-# ============================================================
-# 11. Calculation Parameters
-# ============================================================
-
-st.sidebar.markdown(
-    "### 🧮 ค่าที่ต้องการคำนวณ"
-)
-
-x0 = st.sidebar.number_input(
-    "ค่า x ที่ต้องการแทน",
-    value=2.0,
-    step=0.5
-)
-
-step = st.sidebar.selectbox(
-    "ระยะห่างของ x ในตาราง",
-    [1.0, 0.5, 2.0],
-    index=0
-)
-
-st.sidebar.info(
-    "💡 ปรับค่าพารามิเตอร์เพื่อดูการเปลี่ยนแปลงของกราฟแบบ Real-time"
-)
-
-
-# ============================================================
-# 12. ตรวจสอบ Exponential
-# ============================================================
-
-exp_valid = (
-    a > 0
-    and a != 1
-    and b != 0
-    and c != 0
-)
-
-
-# ============================================================
-# 13. ฟังก์ชัน Exponential
-# ============================================================
-
-if exp_valid:
-
-    def exp_function(x):
-        return b * (a ** (c * (x + h))) + k
-
-    growth_indicator = b * c * np.log(a)
-
-    is_growth = growth_indicator > 0
+if mode == "Exponential":
+if a == 1:
+st.error("a = 1 bใcเFน#าคงY กaณาเQอก a ≠ 1")
+st.stop()
+def f(x):
+return b * a ** (c * (np.asarray(x, dtype=float) + h)) + k
+equation = rf"y = {g(b)}\left({g(a)}^{{{g(c)}(x{h:+g})}}\right){k:+g}"
+# dศทาง: fจากเคgองหมายของ b*c*ln(a)
+s = b * c * np.log(a)
+trend = "เiมjน" if s > 0 else "ลดลง" if s < 0 else "คงY"
+value_range = f"y > {g(k)}" if b > 0 else f"y < {g(k)}" if b < 0 else f"y = {g(k)}"
+asymptote = f"y = {g(k)}"
+# XดDดแกน x: b*a^(c(x+h)) = -k ([องk -k/b > 0)
+if b != 0 and c != 0 and -k / b > 0:
+x_int = np.log(-k / b) / (c * np.log(a)) - h
+x_int_text = f"x = {x_int:.3f}"
+else:
+x_int, x_int_text = None, "ไ5k"
+top_cards = [(PINK, "a (ฐาน)", g(a)), (PEACH, "b (Dวmณ)", g(b)),
+(LAV, "c (เลขn^@ง)", g(c)), (MINT, "h , k (เoอน)", f"{g(h)} , {g(k)}")]
 
 else:
-
-    def exp_function(x):
-        return np.zeros_like(np.asarray(x, dtype=float))
-
-    growth_indicator = 0
-    is_growth = False
-
-
+def f(x):
+return m * np.asarray(x, dtype=float) + c
+equation = rf"y = {g(m)}x{c:+g}"
+trend = "เiมjน" if m > 0 else "ลดลง" if m < 0 else "คงY"
+value_range = "R" if m != 0 else f"y = {g(c)}"
+asymptote = "ไ5k"
+x_int = -c / m if m != 0 else None
+x_int_text = f"x = {x_int:.3f}" if m != 0 else "ไ5k"
+top_cards = [(PINK, "m (ความTน)", g(m)), (PEACH, "c (XดDดแกน y)", g(c)),
+(LAV, "XดDดแกน x", x_int_text), (MINT, "dศทาง", trend)]
 # ============================================================
-# 14. ฟังก์ชัน Linear
+# 4) pวนqวของห&าเrบ
 # ============================================================
-
-def linear_function(x):
-
-    return m * x + ci
-
-
+st.markdown('<div class="big-title">Learn math,<br>one graph at a time</div>',
+unsafe_allow_html=True)
+st.caption(f"^@งเsยนt: RงSTน {mode} | ปLบ#าYแถบvานwาย กราฟจะเปxยนyนz")
+# กา:ด*พาสเทล 4 ใบ
+cols = st.columns(4)
+for col, (color, title, value) in zip(cols, top_cards):
+with col:
+card(color, title, value)
+# แ{งห&าเFน 2 |ง: wาย = เ}อหาห@ก, ขวา = แผงสaป
+left, right = st.columns([3, 1.3])
 # ============================================================
-# 15. Main Tabs
+# 5) |งwาย: แบ ทฤษÇ / กราฟ / \นวณzละÉน
 # ============================================================
+with left:
+tab1, tab2, tab3 = st.tabs([" ทฤษÇ", " กราฟ", " \นวณzละÉน"])
+# ---------- แบทฤษÇ ----------
+with tab1:
+if mode == "Exponential":
+st.latex(r"y = b\left(a^{c(x+h)}\right) + k")
+st.markdown("""
+- **a** : ฐาน (a > 1 เiมjนเÑว, 0 < a < 1 ลดลง)
+- **b** : Öด/หดแนว!ง (Üา b < 0 กราฟพáกลง)
+- **c** : ปLบàตราการเiม/ลด (Üา c < 0 กราฟพáกwาย-ขวา)
+- **h** : เoอนwาย-ขวา
+- **k** : เoอนjน-ลง และเFนเUน^âบ y = k
+""")
 
-tab_exp, tab_lin = st.tabs(
-    [
-        "📈 Exponential Function",
-        "📉 Linear Function"
-    ]
-)
+else:
+st.latex(r"y = mx + c")
+st.markdown("""
+- **m** : ความTน (m > 0 jน, m < 0 ลง, m = 0 แนวนอน)
+- **c** : XดDดแกน y (#า y เäอ x = 0)
+- XดDดแกน x หาจาก 0 = mx + c
+""")
+st.latex(equation)
+# ---------- แบกราฟ ----------
+with tab2:
+x = np.linspace(xmin, xmax, 400)
+y = f(x)
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=x, y=y, mode="lines", name="y = f(x)",
+line=dict(color=PURPLE, width=4)))
+if mode == "Exponential":
+fig.add_hline(y=k, line_dash="dash", line_color="#E58B97",
+annotation_text=f"เUน^âบ y = {g(k)}")
+# XดDดแกน y และXดYเQอก
+fig.add_trace(go.Scatter(x=[0], y=[float(f(0))], mode="markers", name="XดDดแกน y",
+marker=dict(size=12, color="#F2A65A")))
+fig.add_trace(go.Scatter(x=[x0], y=[float(f(x0))], mode="markers", name="XดYเQอก",
+marker=dict(size=12, color="#4CB68A")))
+fig.update_layout(paper_bgcolor="#FBF8F4", plot_bgcolor="#FBF8F4", height=480,
+xaxis_title="x", yaxis_title="y", legend=dict(orientation="h"))
+st.plotly_chart(fig, use_container_width=True)
+# ---------- แบ\นวณzละÉน ----------
+with tab3:
+st.write(f"**หา#า y เäอ x = {g(x0)}**")
+if mode == "Exponential":
+e = c * (x0 + h)
+p = a ** e
+st.latex(rf"x+h = {g(x0)}{h:+g} = {g(x0 + h)}")
+st.latex(rf"c(x+h) = {g(c)}\times {g(x0 + h)} = {g(e)}")
+st.latex(rf"a^{{c(x+h)}} = {g(a)}^{{{g(e)}}} = {g(p)}")
+st.latex(rf"y = {g(b)}\times {g(p)}{k:+g} = {g(b * p + k)}")
+else:
+st.latex(rf"mx = {g(m)}\times {g(x0)} = {g(m * x0)}")
+st.latex(rf"y = mx + c = {g(m * x0)}{c:+g} = {g(m * x0 + c)}")
+st.metric("ผล@พã y", g(float(f(x0))))
+# ตารางสaป
+xs = np.arange(np.floor(xmin), np.ceil(xmax) + 1, max(1, int((xmax - xmin) // 8)))
 
-
+table = pd.DataFrame({"x": xs, "y": np.round(f(xs), 4)})
+st.dataframe(table, use_container_width=True, hide_index=True)
 # ============================================================
-# 16. EXPONENTIAL FUNCTION
+# 6) |งขวา: แผงสaปพฤåกรรมของRงSTน
 # ============================================================
-
-with tab_exp:
-
-    if not exp_valid:
-
-        st.error(
-            "⚠️ ต้องกำหนด a > 0, a ≠ 1, b ≠ 0 และ c ≠ 0 "
-            "จึงจะเป็นฟังก์ชันเอ็กซ์โพเนนเชียล"
-        )
-
-    else:
-
-        # ----------------------------------------------------
-        # Formula + Explanation
-        # ----------------------------------------------------
-
-        left, right = st.columns(
-            [2.2, 1]
-        )
-
-        with left:
-
-            st.markdown(
-                '<div class="info-card">',
-                unsafe_allow_html=True
-            )
-
-            section_title(
-                "📈 ฟังก์ชันเอ็กซ์โพเนนเชียล "
-                "(Exponential Function)"
-            )
-
-            formula_col, meaning_col = st.columns(
-                [1.1, 1]
-            )
-
-            with formula_col:
-
-                st.markdown(
-                    '<div class="formula-card">',
-                    unsafe_allow_html=True
-                )
-
-                st.latex(
-                    r"\Large y=b\left(a^{c(x+h)}\right)+k"
-                )
-
-                st.markdown(
-                    "**รูปแบบทั่วไปของฟังก์ชัน**"
-                )
-
-                st.markdown(
-                    "</div>",
-                    unsafe_allow_html=True
-                )
-
-            with meaning_col:
-
-                st.markdown(
-                    """
-                    **ความหมายของพารามิเตอร์**
-
-                    - **a** : ฐานของเอ็กซ์โพเนนเชียล
-                    - **b** : ตัวคูณ (Scale Factor)
-                    - **c** : อัตราการเปลี่ยนแปลง
-                    - **h** : การเลื่อนแนวนอน
-                    - **k** : การเลื่อนแนวตั้ง
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-
-        with right:
-
-            st.markdown(
-                '<div class="info-card">',
-                unsafe_allow_html=True
-            )
-
-            section_title("📋 ลักษณะกราฟ")
-
-            if growth_indicator > 0:
-
-                st.markdown(
-                    """
-                    - ถ้า \(b·c·\\ln(a) > 0\)
-                      → กราฟเพิ่มขึ้น
-                    - เรียกว่า **Growth 📈**
-                    """
-                )
-
-                st.success(
-                    "ตอนนี้: กราฟเพิ่มขึ้น 📈"
-                )
-
-            else:
-
-                st.markdown(
-                    """
-                    - ถ้า \(b·c·\\ln(a) < 0\)
-                      → กราฟลดลง
-                    - เรียกว่า **Decay 📉**
-                    """
-                )
-
-                st.warning(
-                    "ตอนนี้: กราฟลดลง 📉"
-                )
-
-            st.markdown(
-                f"""
-                เส้นกำกับแนวนอนคือ
-
-                **y = {k:g}**
-                """
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-
-        # ----------------------------------------------------
-        # Graph + Table
-        # ----------------------------------------------------
-
-        graph_col, table_col = st.columns(
-            [2.1, 1]
-        )
-
-        with graph_col:
-
-            st.markdown(
-                '<div class="info-card">',
-                unsafe_allow_html=True
-            )
-
-            section_title(
-                "📈 กราฟของฟังก์ชัน"
-            )
-
-            fig = create_function_graph(
-                exp_function,
-                f"y = {b:g}({a:g}^({c:g}(x+{h:g}))) + {k:g}",
-                k
-            )
-
-            st.plotly_chart(
-                fig,
-                use_container_width=True
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-
-        with table_col:
-
-            st.markdown(
-                '<div class="info-card">',
-                unsafe_allow_html=True
-            )
-
-            section_title(
-                "📋 ตารางค่าของฟังก์ชัน"
-            )
-
-            exp_table = create_table(
-                exp_function,
-                step
-            )
-
-            st.dataframe(
-                exp_table,
-                hide_index=True,
-                use_container_width=True,
-                height=390
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-
-        # ----------------------------------------------------
-        # รูปประกอบ
-        # ----------------------------------------------------
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            "🖼️ รูปประกอบความเข้าใจ"
-        )
-
-        st.plotly_chart(
-            exponential_illustration(),
-            use_container_width=True
-        )
-
-        st.caption(
-            "ภาพประกอบแสดงแนวโน้มของ Exponential Growth และ Exponential Decay"
-        )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-        # ----------------------------------------------------
-        # Step-by-Step
-        # ----------------------------------------------------
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            f"🧮 Step-by-Step Calculation "
-            f"(เมื่อ x = {x0:g})"
-        )
-
-        s1, s2, s3, s4, s5 = st.columns(
-            [1, 1.35, 1.1, 0.9, 1.35]
-        )
-
-        # Step 1
-        with s1:
-
-            st.markdown(
-                "**1. กำหนดค่าพารามิเตอร์**"
-            )
-
-            st.code(
-                f"""a = {a:g}
-b = {b:g}
-c = {c:g}
-h = {h:g}
-k = {k:g}"""
-            )
-
-        # Step 2
-        exponent = c * (x0 + h)
-
-        with s2:
-
-            st.markdown(
-                "**2. แทนค่าในสมการ**"
-            )
-
-            st.latex(
-                rf"""
-                y={b:g}
-                \left(
-                {a:g}^{{{c:g}({x0:g}+{h:g})}}
-                \right)+{k:g}
-                """
-            )
-
-            st.latex(
-                rf"""
-                ={b:g}({a:g}^{{{exponent:.4g}}})+{k:g}
-                """
-            )
-
-        # Step 3
-        exponential_value = a ** exponent
-        final_value = exp_function(x0)
-
-        with s3:
-
-            st.markdown(
-                "**3. คำนวณค่า**"
-            )
-
-            st.latex(
-                rf"""
-                {a:g}^{{{exponent:.4g}}}
-                =
-                {exponential_value:.4f}
-                """
-            )
-
-            st.latex(
-                rf"""
-                y={b:g}({exponential_value:.4f})+{k:g}
-                """
-            )
-
-        # Step 4
-        with s4:
-
-            st.markdown(
-                "**4. ผลลัพธ์**"
-            )
-
-            st.metric(
-                f"y เมื่อ x = {x0:g}",
-                f"{final_value:.2f}"
-            )
-
-        # Step 5
-        with s5:
-
-            st.success(
-                f"""
-                **สรุปผลการทดลอง**
-
-                เมื่อ x เพิ่มขึ้น
-                ค่าของฟังก์ชันจะ
-                **{'เพิ่มขึ้น' if is_growth else 'ลดลง'}**
-
-                แบบเอ็กซ์โพเนนเชียล
-
-                b·c·ln(a)
-                = {growth_indicator:.3f}
-
-                เส้นกำกับแนวนอน
-                y = {k:g}
-
-                การเลื่อนแนวนอน
-                h = {h:g}
-                """
-            )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-# ============================================================
-# 17. LINEAR FUNCTION
-# ============================================================
-
-with tab_lin:
-
-    # --------------------------------------------------------
-    # Formula + Explanation
-    # --------------------------------------------------------
-
-    left, right = st.columns(
-        [2.2, 1]
-    )
-
-    with left:
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            "📉 ฟังก์ชันเส้นตรง "
-            "(Linear Function)"
-        )
-
-        formula_col, meaning_col = st.columns(
-            [1.1, 1]
-        )
-
-        with formula_col:
-
-            st.markdown(
-                '<div class="formula-card">',
-                unsafe_allow_html=True
-            )
-
-            st.latex(
-                r"\Large y=mx+c"
-            )
-
-            st.markdown(
-                "**สมการฟังก์ชันเส้นตรง**"
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
-            )
-
-        with meaning_col:
-
-            st.markdown(
-                """
-                **ความหมายของพารามิเตอร์**
-
-                - **m** : ความชัน (Slope)
-                - **c** : จุดตัดแกน y
-                - จุดตัดแกน x คือ
-
-                \[
-                x=-\frac{c}{m}
-                \]
-                """
-            )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-    with right:
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            "📋 ลักษณะกราฟ"
-        )
-
-        if m > 0:
-
-            st.markdown(
-                "- m > 0 → กราฟเพิ่มขึ้น 📈"
-            )
-
-            st.success(
-                "ตอนนี้: กราฟเพิ่มขึ้น"
-            )
-
-        elif m < 0:
-
-            st.markdown(
-                "- m < 0 → กราฟลดลง 📉"
-            )
-
-            st.warning(
-                "ตอนนี้: กราฟลดลง"
-            )
-
-        else:
-
-            st.markdown(
-                "- m = 0 → เส้นตรงแนวนอน"
-            )
-
-            st.info(
-                "ตอนนี้: กราฟคงที่"
-            )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-    # --------------------------------------------------------
-    # Graph + Table
-    # --------------------------------------------------------
-
-    graph_col, table_col = st.columns(
-        [2.1, 1]
-    )
-
-    with graph_col:
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            "📈 กราฟของฟังก์ชัน"
-        )
-
-        linear_fig = create_function_graph(
-            linear_function,
-            f"y = {m:g}x + {ci:g}"
-        )
-
-        st.plotly_chart(
-            linear_fig,
-            use_container_width=True
-        )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-    with table_col:
-
-        st.markdown(
-            '<div class="info-card">',
-            unsafe_allow_html=True
-        )
-
-        section_title(
-            "📋 ตารางค่าของฟังก์ชัน"
-        )
-
-        linear_table = create_table(
-            linear_function,
-            step
-        )
-
-        st.dataframe(
-            linear_table,
-            hide_index=True,
-            use_container_width=True,
-            height=390
-        )
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-    # --------------------------------------------------------
-    # Linear Illustration
-    # --------------------------------------------------------
-
-    st.markdown(
-        '<div class="info-card">',
-        unsafe_allow_html=True
-    )
-
-    section_title(
-        "🖼️ รูปประกอบความเข้าใจเรื่องความชัน"
-    )
-
-    st.plotly_chart(
-        linear_illustration(),
-        use_container_width=True
-    )
-
-    st.caption(
-        "เส้นสีน้ำเงินแสดง m > 0 และเส้นสีแดงแสดง m < 0"
-    )
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-
-    # --------------------------------------------------------
-    # Step-by-Step
-    # --------------------------------------------------------
-
-    st.markdown(
-        '<div class="info-card">',
-        unsafe_allow_html=True
-    )
-
-    section_title(
-        f"🧮 Step-by-Step Calculation "
-        f"(เมื่อ x = {x0:g})"
-    )
-
-    s1, s2, s3, s4, s5 = st.columns(
-        [1, 1.35, 1.1, 0.9, 1.35]
-    )
-
-    # Step 1
-    with s1:
-
-        st.markdown(
-            "**1. กำหนดค่าพารามิเตอร์**"
-        )
-
-        st.code(
-            f"""m = {m:g}
-c = {ci:g}"""
-        )
-
-    # Step 2
-    with s2:
-
-        st.markdown(
-            "**2. แทนค่าในสมการ**"
-        )
-
-        st.latex(
-            rf"""
-            y={m:g}({x0:g})+({ci:g})
-            """
-        )
-
-    # Step 3
-    linear_value = linear_function(x0)
-
-    with s3:
-
-        st.markdown(
-            "**3. คำนวณค่า**"
-        )
-
-        st.latex(
-            rf"""
-            y={m*x0:g}+({ci:g})
-            """
-        )
-
-    # Step 4
-    with s4:
-
-        st.markdown(
-            "**4. ผลลัพธ์**"
-        )
-
-        st.metric(
-            f"y เมื่อ x = {x0:g}",
-            f"{linear_value:.2f}"
-        )
-
-    # Step 5
-    with s5:
-
-        if m != 0:
-
-            x_intercept = -ci / m
-
-            x_intercept_text = (
-                f"x = {x_intercept:.3f}"
-            )
-
-        else:
-
-            x_intercept_text = "ไม่มีจุดตัดแกน x แบบจุดเดียว"
-
-
-        st.success(
-            f"""
-            **สรุปผลการทดลอง**
-
-            ความชัน
-            m = {m:g}
-
-            ฟังก์ชันนี้เป็น
-            **{'ฟังก์ชันเพิ่ม' if m > 0 else ('ฟังก์ชันลด' if m < 0 else 'ฟังก์ชันคงที่')}**
-
-            จุดตัดแกน y:
-            (0, {ci:g})
-
-            จุดตัดแกน x:
-            {x_intercept_text}
-            """
-        )
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-
-# ============================================================
-# 18. สรุปผลการเรียนรู้
-# ============================================================
-
-st.markdown("---")
-
-st.markdown(
-    '<div class="info-card">',
-    unsafe_allow_html=True
-)
-
-section_title(
-    "📝 สรุปผลการเรียนรู้"
-)
-
-summary_col1, summary_col2 = st.columns(2)
-
-with summary_col1:
-
-    st.markdown(
-        """
-        ### 📈 Exponential Function
-
-        รูปแบบ
-
-        \[
-        y=b(a^{c(x+h)})+k
-        \]
-
-        - **a** → ฐานของฟังก์ชัน
-        - **b** → ตัวคูณ
-        - **c** → อัตราการเปลี่ยนแปลง
-        - **h** → การเลื่อนแนวนอน
-        - **k** → การเลื่อนแนวตั้ง
-        - มีเส้นกำกับแนวนอนที่ **y = k**
-        """
-    )
-
-with summary_col2:
-
-    st.markdown(
-        """
-        ### 📉 Linear Function
-
-        รูปแบบ
-
-        \[
-        y=mx+c
-        \]
-
-        - **m** → ความชัน
-        - **c** → จุดตัดแกน y
-        - m > 0 → กราฟเพิ่มขึ้น
-        - m < 0 → กราฟลดลง
-        - m = 0 → เส้นตรงแนวนอน
-        """
-    )
-
-st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# 19. Footer
-# ============================================================
-
-st.markdown(
-    """
-    <div style="
-        text-align:center;
-        color:#667085;
-        font-size:13px;
-        padding:20px;
-    ">
-        Math Function Explorer · Project 2569 · กลุ่ม 4
-        <br>
-        Interactive Mathematics Learning Application
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+with right:
+with st.container(border=True):
+st.subheader(" สaปพฤåกรรม")
+st.metric("dศทางของRงSTน", trend)
+st.metric("เรนç", value_range)
+st.metric("XดDดแกน y", f"(0, {g(round(float(f(0)), 3))})")
+st.metric("XดDดแกน x", x_int_text)
+st.write(f"**โดเมน:** R (èกêนวนจëง)")
+st.write(f"**เUน^âบแนวนอน:** {asymptote}")
