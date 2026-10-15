@@ -32,15 +32,15 @@ st.markdown(f'<div class="card" style="background:{color}"><small>{title}</small
 f'<h3>{value}</h3></div>', unsafe_allow_html=True)
 
 def g(v):
-"""แปลงDวเลขเFนGอความIนๆ เKน 2.0 -> 2"""
+"""แปลงตัวเลขเป็นข้อความสั้นๆ เช่น 2.0 -> 2"""
 return f"{v:g}"
 
 # ============================================================
 
 # 2) Sidebar: Lบ#าจากMใO (widgets)
 # ============================================================
-st.sidebar.title(" เมP")
-mode = st.sidebar.selectbox("เQอกRงSTน", ["Exponential", "เUนตรง"])
+st.sidebar.title(" เมนู")
+mode = st.sidebar.selectbox("เลือกฟังก์ชัน", ["Exponential", "เส้นตรง"])
 if mode == "Exponential":
 st.sidebar.latex(r"y=b\left(a^{c(x+h)}\right)+k")
 a = st.sidebar.number_input("a (ฐาน, a > 0, a ≠ 1)", 0.1, 20.0, 2.0, 0.1)
@@ -50,23 +50,23 @@ h = st.sidebar.slider("h", -5.0, 5.0, 0.0, 0.5)
 k = st.sidebar.slider("k", -10.0, 10.0, 0.0, 0.5)
 else:
 st.sidebar.latex(r"y=mx+c")
-m = st.sidebar.slider("m (ความTน)", -10.0, 10.0, 1.0, 0.1)
-c = st.sidebar.number_input("c (XดDดแกน y)", -50.0, 50.0, 0.0, 0.5)
-xmin, xmax = st.sidebar.slider("Kวงของ x Yแสดงบนกราฟ", -15.0, 15.0, (-5.0, 5.0), 0.5)
-x0 = st.sidebar.number_input("x Y[องการ\นวณ", value=1.0, step=0.5)
+m = st.sidebar.slider("m (ความชัน)", -10.0, 10.0, 1.0, 0.1)
+c = st.sidebar.number_input("c (จุดตัดแกน y)", -50.0, 50.0, 0.0, 0.5)
+xmin, xmax = st.sidebar.slider("ช่วงของ x Yแสดงบนกราฟ", -15.0, 15.0, (-5.0, 5.0), 0.5)
+x0 = st.sidebar.number_input("x ที่ต้องการคำนวณ", value=1.0, step=0.5)
 # ============================================================
-# 3) ^หนดRงSTน f(x) และGอ`ลสaป
+# 3)กำหนดฟังก์ชัน f(x) และข้อมูลสรุป
 # ============================================================
 if mode == "Exponential":
 if a == 1:
-st.error("a = 1 bใcเFน#าคงY กaณาเQอก a ≠ 1")
+st.error("a = 1 ทำให้เป็นค่าคงที่ กรุณาเลือก a ≠ 1")
 st.stop()
 def f(x):
 return b * a ** (c * (np.asarray(x, dtype=float) + h)) + k
 equation = rf"y = {g(b)}\left({g(a)}^{{{g(c)}(x{h:+g})}}\right){k:+g}"
 # dศทาง: fจากเคgองหมายของ b*c*ln(a)
 s = b * c * np.log(a)
-trend = "เiมjน" if s > 0 else "ลดลง" if s < 0 else "คงY"
+trend = "เพิ่มขึ้น" if s > 0 else "ลดลง" if s < 0 else "คงY"
 value_range = f"y > {g(k)}" if b > 0 else f"y < {g(k)}" if b < 0 else f"y = {g(k)}"
 asymptote = f"y = {g(k)}"
 # XดDดแกน x: b*a^(c(x+h)) = -k ([องk -k/b > 0)
