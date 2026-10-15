@@ -18,7 +18,7 @@ st.markdown("""
 <style>
     /* สีพื้นหลังของแอป */
     .stApp {
-        background-color: #FDFBD4;
+        background-color: #D9D7B6;
     }
     
     /* สไตล์การ์ดข้อมูลแบบพาสเทล */
