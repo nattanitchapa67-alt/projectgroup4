@@ -16,9 +16,9 @@ st.set_page_config(page_title="MathEdu Studio - โครงงานที่ 4
 # Custom CSS ตกแต่งให้พื้นหลังเป็นสีมินต์พาสเทล และการ์ดสีพาสเทลนุ่มนวล
 st.markdown("""
 <style>
-    /* สีพื้นหลังของแอปเป็นสีมินต์พาสเทลสดชื่น */
+    /* สีพื้นหลังของแอป */
     .stApp {
-        background-color: #D5F2E3;
+        background-color: #FDFBD4;
     }
     
     /* สไตล์การ์ดข้อมูลแบบพาสเทล */
