@@ -27,7 +27,6 @@ html, body, [class*="css"] {{ font-family: 'Sarabun', sans-serif !important; }}
 """, unsafe_allow_html=True)
 
 def card(color, title, value):
-"""สBางกา:ด*พาสเทล"""
 st.markdown(f'<div class="card" style="background:{color}"><small>{title}</small>'
 f'<h3>{value}</h3></div>', unsafe_allow_html=True)
 
