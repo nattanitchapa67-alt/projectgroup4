@@ -283,11 +283,3 @@ with tab3:
 
     # แสดงตารางในหน้าเว็บ
     st.dataframe(df, use_container_width=True)
-
-    # ปุ่มดาวน์โหลดไฟล์ CSV
-    csv_bytes = df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 ดาวน์โหลดตารางเป็น CSV",
-        data=csv_bytes,
-        file_name="project4_coordinates.csv",
-        mime="text/csv")
